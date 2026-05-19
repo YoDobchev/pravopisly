@@ -62,7 +62,7 @@ if __name__ == "__main__":
         {"params": model.spelling_head.parameters(), "lr": 1e-4},
     ])
 
-    for epoch in range(2):
+    for epoch in range(3):
         train_metrics = train_step(
             model=model,
             loader=train_loader,
@@ -85,3 +85,21 @@ if __name__ == "__main__":
             f"test_comma_loss={test_metrics['comma_loss']:.4f} | "
             f"test_spelling_loss={test_metrics['spelling_loss']:.4f}"
         )
+    SAVE_DIR = "checkpoints/bg_multitask_bert"
+    os.makedirs(SAVE_DIR, exist_ok=True)
+
+    torch.save(
+        {
+            "model_state_dict": model.state_dict(),
+            "config": {
+                "encoder_name": "rmihaylov/bert-base-bg",
+                "num_comma_labels": 2,
+                "num_spelling_labels": 2,
+            },
+        },
+        f"{SAVE_DIR}/model.pt",
+    )
+
+    tokenizer.save_pretrained(SAVE_DIR)
+
+    print(f"Saved model to {SAVE_DIR}")
