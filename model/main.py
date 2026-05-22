@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 from timeit import default_timer as timer
 
 from dataset import PravopislyDataset
-from train import PravopislyBERTModel, train_step, test_step
+from train import PravopislyBERTModel, train
 from dotenv import load_dotenv
 import os
 
@@ -23,7 +23,7 @@ if __name__ == "__main__":
     load_dotenv()
     data_folder = os.getenv("DATAFOLDER")
     assert data_folder != None
-    
+
     tokenizer = AutoTokenizer.from_pretrained("rmihaylov/bert-base-bg")
 
     dataset = PravopislyDataset(
@@ -56,35 +56,9 @@ if __name__ == "__main__":
         encoder_name="rmihaylov/bert-base-bg",
     ).to(device)
 
-    optimizer = torch.optim.AdamW([
-        {"params": model.bert.parameters(), "lr": 2e-5},
-        {"params": model.comma_head.parameters(), "lr": 1e-4},
-        {"params": model.spelling_head.parameters(), "lr": 1e-4},
-    ])
+    train(model, train_loader, test_loader, device,
+          what_to_train="comma_head", epochs=2)
 
-    for epoch in range(3):
-        train_metrics = train_step(
-            model=model,
-            loader=train_loader,
-            optimizer=optimizer,
-            device=device,
-        )
-
-        test_metrics = test_step(
-            model=model,
-            loader=test_loader,
-            device=device,
-        )
-
-        print(
-            f"Epoch {epoch + 1} | "
-            f"train_loss={train_metrics['loss']:.4f} | "
-            f"train_comma_loss={train_metrics['comma_loss']:.4f} | "
-            f"train_spelling_loss={train_metrics['spelling_loss']:.4f} | "
-            f"test_loss={test_metrics['loss']:.4f} | "
-            f"test_comma_loss={test_metrics['comma_loss']:.4f} | "
-            f"test_spelling_loss={test_metrics['spelling_loss']:.4f}"
-        )
     SAVE_DIR = "checkpoints/bg_multitask_bert"
     os.makedirs(SAVE_DIR, exist_ok=True)
 
