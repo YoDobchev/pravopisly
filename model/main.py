@@ -27,7 +27,8 @@ if __name__ == "__main__":
     print(f"DATAFOLDER = {data_folder}", flush=True)
 
     print("Loading tokenizer...", flush=True)
-    tokenizer = AutoTokenizer.from_pretrained("rmihaylov/bert-base-bg")
+    tokenizer = AutoTokenizer.from_pretrained(
+        "rmihaylov/bert-base-bg", use_fast=True)
     print("Tokenizer loaded", flush=True)
 
     dataset = PravopislyDataset(
