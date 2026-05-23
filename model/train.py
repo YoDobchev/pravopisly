@@ -13,10 +13,14 @@ class PravopislyBERTModel(nn.Module):
         num_spelling_labels=2,
         num_grammar_labels=2,
         dropout=0.3,
+        tokenizer_len=None,
     ):
         super().__init__()
 
         self.bert: AutoModel = AutoModel.from_pretrained(encoder_name)
+
+        if tokenizer_len is not None:
+            self.bert.resize_token_embeddings(tokenizer_len)
 
         hidden_size = self.bert.config.hidden_size
         self.dropout = nn.Dropout(dropout)

@@ -61,6 +61,7 @@ if __name__ == "__main__":
 
     model = PravopislyBERTModel(
         encoder_name="rmihaylov/bert-base-bg",
+        tokenizer_len=len(tokenizer),
     ).to(device)
 
     train(model, train_loader, test_loader, device,
