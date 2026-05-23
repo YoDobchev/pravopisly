@@ -20,18 +20,25 @@ device = torch.device(
 print(f"Using device: {device}")
 
 if __name__ == "__main__":
+    print("Loading .env...", flush=True)
     load_dotenv()
     data_folder = os.getenv("DATAFOLDER")
     assert data_folder != None
+    print(f"DATAFOLDER = {data_folder}", flush=True)
 
+    print("Loading tokenizer...", flush=True)
     tokenizer = AutoTokenizer.from_pretrained("rmihaylov/bert-base-bg")
-
+    print("Tokenizer loaded", flush=True)
+    
+    print("Building dataset...", flush=True)
     dataset = PravopislyDataset(
         jsonl_path=f"{data_folder}/dataset.jsonl",
         tokenizer=tokenizer,
         max_length=32,
     )
+    print(f"Dataset loaded: {len(dataset)} samples", flush=True)
 
+    print("Splitting dataset...", flush=True)
     train_size = int(0.8 * len(dataset))
     test_size = len(dataset) - train_size
 
