@@ -11,7 +11,8 @@ class PravopislyBERTModel(nn.Module):
         encoder_name="rmihaylov/bert-base-bg",
         num_comma_labels=2,
         num_spelling_labels=2,
-        dropout=0.2,
+        num_grammar_labels=2,
+        dropout=0.3,
     ):
         super().__init__()
 
@@ -22,6 +23,7 @@ class PravopislyBERTModel(nn.Module):
 
         self.comma_head = nn.Linear(hidden_size, num_comma_labels)
         self.spelling_head = nn.Linear(hidden_size, num_spelling_labels)
+        self.grammar_head = nn.Linear(hidden_size, num_grammar_labels)
 
         self.what_to_train = "all"
 
@@ -56,6 +58,9 @@ class PravopislyBERTModel(nn.Module):
         for p in self.spelling_head.parameters():
             p.requires_grad = False
 
+        for p in self.grammar_head.parameters():
+            p.requires_grad = False
+
         self.what_to_train = "comma_head"
 
     def train_only_spelling_head(self):
@@ -67,7 +72,24 @@ class PravopislyBERTModel(nn.Module):
         for p in self.spelling_head.parameters():
             p.requires_grad = True
 
+        for p in self.grammar_head.parameters():
+            p.requires_grad = False
+
         self.what_to_train = "spelling_head"
+
+    def train_only_grammar_head(self):
+        self.freeze_bert()
+
+        for p in self.comma_head.parameters():
+            p.requires_grad = False
+
+        for p in self.spelling_head.parameters():
+            p.requires_grad = False
+
+        for p in self.grammar_head.parameters():
+            p.requires_grad = True
+
+        self.what_to_train = "grammar_head"
 
     def train_everything(self):
         self.unfreeze_bert()
@@ -78,6 +100,8 @@ class PravopislyBERTModel(nn.Module):
         for p in self.spelling_head.parameters():
             p.requires_grad = True
 
+        for p in self.grammar_head.parameters():
+            p.requires_grad = True
         self.what_to_train = "all"
 
     def forward(
@@ -86,8 +110,10 @@ class PravopislyBERTModel(nn.Module):
         attention_mask,
         comma_labels=None,
         spelling_labels=None,
+        grammar_labels=None,
         comma_weight=None,
         spelling_weight=None,
+        grammar_weight=None,
     ):
         outputs = self.bert(
             input_ids=input_ids,
@@ -99,6 +125,7 @@ class PravopislyBERTModel(nn.Module):
 
         comma_logits = self.comma_head(x)
         spelling_logits = self.spelling_head(x)
+        grammar_logits = self.grammar_head(x)
 
         comma_loss = (
             self._loss_for_head(
@@ -122,23 +149,37 @@ class PravopislyBERTModel(nn.Module):
             else spelling_logits.new_tensor(0.0)
         )
 
-        loss = comma_loss + spelling_loss
+        grammar_loss = (
+            self._loss_for_head(
+                grammar_logits,
+                grammar_labels,
+                self.grammar_head.out_features,
+                weight=grammar_weight,
+            )
+            if self.what_to_train in ["grammar_head", "all"]
+            else grammar_logits.new_tensor(0.0)
+        )
+
+        loss = comma_loss + spelling_loss + grammar_loss
 
         return {
             "loss": loss,
             "comma_logits": comma_logits,
             "spelling_logits": spelling_logits,
+            "grammar_logits": grammar_logits,
             "comma_loss": comma_loss.detach(),
             "spelling_loss": spelling_loss.detach(),
+            "grammar_loss": grammar_loss.detach(),
         }
 
 
-def train_step(model, loader, optimizer, device, comma_weight=None, spelling_weight=None):
+def train_step(model, loader, optimizer, device, comma_weight=None, spelling_weight=None, grammar_weight=None):
     model.train()
 
     total_loss = 0
     total_comma_loss = 0
     total_spelling_loss = 0
+    total_grammar_loss = 0
     steps = 0
 
     if comma_weight is not None:
@@ -147,12 +188,16 @@ def train_step(model, loader, optimizer, device, comma_weight=None, spelling_wei
     if spelling_weight is not None:
         spelling_weight = spelling_weight.to(device)
 
+    if grammar_weight is not None:
+        grammar_weight = grammar_weight.to(device)
+
     for batch in loader:
         input_ids = batch["input_ids"].to(device)
         attention_mask = batch["attention_mask"].to(device)
 
         comma_labels = batch["comma_labels"].to(device)
         spelling_labels = batch["spelling_labels"].to(device)
+        grammar_labels = batch["grammar_labels"].to(device)
 
         optimizer.zero_grad(set_to_none=True)
 
@@ -161,8 +206,10 @@ def train_step(model, loader, optimizer, device, comma_weight=None, spelling_wei
             attention_mask=attention_mask,
             comma_labels=comma_labels,
             spelling_labels=spelling_labels,
+            grammar_labels=grammar_labels,
             comma_weight=comma_weight,
             spelling_weight=spelling_weight,
+            grammar_weight=grammar_weight
         )
 
         loss = outputs["loss"]
@@ -176,12 +223,14 @@ def train_step(model, loader, optimizer, device, comma_weight=None, spelling_wei
         total_loss += loss.item()
         total_comma_loss += outputs["comma_loss"].item()
         total_spelling_loss += outputs["spelling_loss"].item()
+        total_grammar_loss += outputs["grammar_loss"].item()
         steps += 1
 
     return {
         "loss": total_loss / steps,
         "comma_loss": total_comma_loss / steps,
         "spelling_loss": total_spelling_loss / steps,
+        "grammar_loss": total_grammar_loss / steps,
     }
 
 
@@ -192,6 +241,7 @@ def test_step(model, loader, device):
     total_loss = 0
     total_comma_loss = 0
     total_spelling_loss = 0
+    total_grammar_loss = 0
     steps = 0
 
     for batch in loader:
@@ -200,23 +250,27 @@ def test_step(model, loader, device):
 
         comma_labels = batch["comma_labels"].to(device)
         spelling_labels = batch["spelling_labels"].to(device)
+        grammar_labels = batch["grammar_labels"].to(device)
 
         outputs = model(
             input_ids=input_ids,
             attention_mask=attention_mask,
             comma_labels=comma_labels,
             spelling_labels=spelling_labels,
+            grammar_labels=grammar_labels
         )
 
         total_loss += outputs["loss"].item()
         total_comma_loss += outputs["comma_loss"].item()
         total_spelling_loss += outputs["spelling_loss"].item()
+        total_grammar_loss += outputs["grammar_loss"].item()
         steps += 1
 
     return {
         "loss": total_loss / steps,
         "comma_loss": total_comma_loss / steps,
         "spelling_loss": total_spelling_loss / steps,
+        "grammar_loss": total_grammar_loss / steps,
     }
 
 
@@ -230,6 +284,7 @@ def train(model: PravopislyBERTModel, train_loader, test_loader, device, epochs=
                 {"params": model.bert.parameters(), "lr": 2e-5},
                 {"params": model.comma_head.parameters(), "lr": 1e-4},
                 {"params": model.spelling_head.parameters(), "lr": 1e-4},
+                {"params": model.grammar_head.parameters(), "lr": 1e-4},
             ]
         )
 
@@ -248,12 +303,22 @@ def train(model: PravopislyBERTModel, train_loader, test_loader, device, epochs=
             [p for p in model.parameters() if p.requires_grad],
             lr=1e-3,
         )
+
+    elif what_to_train == "grammar_head":
+        model.train_only_grammar_head()
+
+        optimizer = torch.optim.AdamW(
+            [p for p in model.parameters() if p.requires_grad],
+            lr=1e-3,
+        )
+
     else:
         raise ValueError(
             "invalid 'what_to_train'")
 
-    comma_weight = torch.tensor([1.0, 3.0])
+    comma_weight = torch.tensor([1.0, 5.0])
     spelling_weight = torch.tensor([1.0, 2.0])
+    grammar_weight = torch.tensor([1.0, 2.0])
 
     print(f"training {what_to_train} for {epochs} epochs...")
     for epoch in tqdm(range(epochs)):
@@ -263,6 +328,7 @@ def train(model: PravopislyBERTModel, train_loader, test_loader, device, epochs=
             optimizer=optimizer,
             comma_weight=comma_weight,
             spelling_weight=spelling_weight,
+            grammar_weight=grammar_weight,
             device=device,
         )
 
@@ -277,7 +343,9 @@ def train(model: PravopislyBERTModel, train_loader, test_loader, device, epochs=
             f"train_loss={train_metrics['loss']:.4f} | "
             f"train_comma_loss={train_metrics['comma_loss']:.4f} | "
             f"train_spelling_loss={train_metrics['spelling_loss']:.4f} | "
+            f"train_grammar_loss={train_metrics['grammar_loss']:.4f} | "
             f"test_loss={test_metrics['loss']:.4f} | "
             f"test_comma_loss={test_metrics['comma_loss']:.4f} | "
-            f"test_spelling_loss={test_metrics['spelling_loss']:.4f}"
+            f"test_spelling_loss={test_metrics['spelling_loss']:.4f} | "
+            f"test_grammar_loss={test_metrics['grammar_loss']:.4f}"
         )

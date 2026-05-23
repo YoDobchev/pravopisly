@@ -16,6 +16,7 @@ class PravopislyDataset(Dataset):
 
                 comma_labels = row.get("c")
                 spelling_labels = row.get("sp")
+                grammar_labels = row.get("g")
 
                 if comma_labels is not None and len(comma_labels) != len(words):
                     raise ValueError(
@@ -27,6 +28,12 @@ class PravopislyDataset(Dataset):
                     raise ValueError(
                         f"spelling label length mismatch: "
                         f"{len(spelling_labels)} labels vs {len(words)} words\n{text}"
+                    )
+
+                if grammar_labels is not None and len(grammar_labels) != len(words):
+                    raise ValueError(
+                        f"grammar label length mismatch: "
+                        f"{len(grammar_labels)} labels vs {len(words)} words\n{text}"
                     )
 
                 encoded = tokenizer(
@@ -50,11 +57,17 @@ class PravopislyDataset(Dataset):
                     spelling_labels,
                 )
 
+                aligned_grammar_labels = self.align_labels(
+                    word_ids,
+                    grammar_labels,
+                )
+
                 self.examples.append({
                     "input_ids": encoded["input_ids"].squeeze(0),
                     "attention_mask": encoded["attention_mask"].squeeze(0),
                     "comma_labels": torch.tensor(aligned_comma_labels),
                     "spelling_labels": torch.tensor(aligned_spelling_labels),
+                    "grammar_labels": torch.tensor(aligned_grammar_labels),
                     "text": text,
                     "words": words,
                 })
@@ -91,4 +104,5 @@ class PravopislyDataset(Dataset):
             "attention_mask": item["attention_mask"],
             "comma_labels": item["comma_labels"],
             "spelling_labels": item["spelling_labels"],
+            "grammar_labels": item["grammar_labels"],
         }

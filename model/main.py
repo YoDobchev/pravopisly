@@ -57,9 +57,15 @@ if __name__ == "__main__":
     ).to(device)
 
     train(model, train_loader, test_loader, device,
-          what_to_train="comma_head", epochs=2)
+          what_to_train="comma_head", epochs=3)
 
-    SAVE_DIR = "checkpoints/bg_multitask_bert"
+    train(model, train_loader, test_loader, device,
+          what_to_train="grammar_head", epochs=3)
+
+    train(model, train_loader, test_loader, device,
+          what_to_train="all", epochs=5)
+
+    SAVE_DIR = "checkpoints/pravopisly_model"
     os.makedirs(SAVE_DIR, exist_ok=True)
 
     torch.save(
@@ -69,6 +75,7 @@ if __name__ == "__main__":
                 "encoder_name": "rmihaylov/bert-base-bg",
                 "num_comma_labels": 2,
                 "num_spelling_labels": 2,
+                "num_grammar_labels": 2,
             },
         },
         f"{SAVE_DIR}/model.pt",
