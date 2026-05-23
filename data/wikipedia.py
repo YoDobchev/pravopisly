@@ -1,8 +1,11 @@
 from pathlib import Path
 import re
 import json
+import random
+import pandas as pd
 
 from commas import sentence_to_word_labels
+
 
 def is_good_sentence(sentence: str) -> bool:
     sentence = sentence.strip()
@@ -87,37 +90,12 @@ def is_good_sentence(sentence: str) -> bool:
         if re.search(pattern, sentence, flags=re.IGNORECASE):
             return False
 
-    if ":" in sentence:
-        return False
-
-    if ";" in sentence:
-        return False
-
-    if sentence.count("(") > 1 or sentence.count(")") > 1:
-        return False
-
-    if sentence.count('"') > 2:
-        return False
-
-    if sentence.count("„") > 2 or sentence.count("“") > 2:
-        return False
-
     digit_count = len(re.findall(r"\d", sentence))
     if digit_count > 8:
         return False
 
     cyrillic_letters = re.findall(r"[А-Яа-я]", sentence)
     if len(cyrillic_letters) < 25:
-        return False
-
-    latin_letters = re.findall(r"[A-Za-z]", sentence)
-    if len(latin_letters) > 5:
-        return False
-
-    symbol_count = len(
-        re.findall(r"[^А-Яа-яA-Za-z0-9\s,.!?;:„“\"'()—–-]", sentence)
-    )
-    if symbol_count > 1:
         return False
 
     normal_words = 0
@@ -162,23 +140,117 @@ def clean_and_extract_sentences(text: str):
         yield sentence
 
 
+def build_replacements(lemmas_file):
+    word_col = lemmas_file.columns[0]
+    lemma_col = lemmas_file.columns[1]
 
-def append_wikipedia_sentences(path: str):
+    replacements = {}
+
+    for _, group in lemmas_file.groupby(lemma_col):
+        forms = (
+            group[word_col]
+            .dropna()
+            .astype(str)
+            .str.strip()
+            .tolist()
+        )
+
+        forms = [form for form in forms if re.fullmatch(r"[А-Яа-я]+", form)]
+
+        if len(forms) < 2:
+            continue
+
+        forms = list(dict.fromkeys(forms))
+
+        for form in forms:
+            key = form.lower()
+
+            alternatives = [
+                other for other in forms
+                if other.lower() != key
+            ]
+
+            if alternatives:
+                replacements.setdefault(key, []).extend(alternatives)
+
+    for key in replacements:
+        replacements[key] = list(dict.fromkeys(replacements[key]))
+
+    return replacements
+
+
+def split_word(word: str):
+    match = re.match(r"^([^А-Яа-я]*)([А-Яа-я]+)([^А-Яа-я]*)$", word)
+
+    if not match:
+        return "", word, ""
+
+    return match.group(1), match.group(2), match.group(3)
+
+
+def keep_case(original: str, replacement: str):
+    if original.isupper():
+        return replacement.upper()
+
+    if original[0].isupper():
+        return replacement[0].upper() + replacement[1:].lower()
+
+    return replacement.lower()
+
+
+def make_grammar_mistake(sentence: str, replacements):
+    words = sentence.split()
+    grammar_labels = [0] * len(words)
+
+    possible = []
+
+    for i, word in enumerate(words):
+        prefix, core, suffix = split_word(word)
+
+        if core.lower() in replacements:
+            possible.append(i)
+
+    if not possible:
+        return sentence, grammar_labels
+
+    mistake_count = 1
+
+    if len(possible) >= 2 and random.random() < 0.25:
+        mistake_count = 2
+
+    selected = random.sample(possible, min(mistake_count, len(possible)))
+    new_words = words[:]
+
+    for i in selected:
+        prefix, core, suffix = split_word(words[i])
+        alternatives = replacements[core.lower()]
+
+        replacement = random.choice(alternatives)
+        replacement = keep_case(core, replacement)
+
+        new_words[i] = prefix + replacement + suffix
+        grammar_labels[i] = 1
+
+    return " ".join(new_words), grammar_labels
+
+
+def append_wikipedia_sentences(path: str, lemmasPath):
     input_folder = Path(path)
     files = [file for file in input_folder.rglob("*") if file.is_file()]
 
+    lemmas_file = pd.read_csv(lemmasPath, sep="\t")
+    replacements = build_replacements(lemmas_file)
+
+    print(lemmas_file.head())
+    print(f"Loaded {len(replacements)} replaceable words")
+
     with open("dataset.jsonl", "w", encoding="utf-8") as df:
-        counter = 5
-
         for file in files:
-            counter += 1
-            if counter >= 10:
-                break
-
             text = file.read_text(encoding="utf-8")
 
             for sentence in clean_and_extract_sentences(text):
-                clean_sentence, comma_labels = sentence_to_word_labels(sentence)
+                clean_sentence, comma_labels = sentence_to_word_labels(
+                    sentence)
 
                 words = clean_sentence.split()
 
@@ -188,9 +260,32 @@ def append_wikipedia_sentences(path: str):
                         f"{len(words)} words\n{clean_sentence}"
                     )
 
-                item = {
+                bad_sentence, grammar_labels = make_grammar_mistake(
+                    clean_sentence,
+                    replacements,
+                )
+
+                if sum(grammar_labels) > 0:
+                    bad_words = bad_sentence.split()
+
+                    if len(bad_words) != len(words):
+                        raise ValueError(
+                            f"Grammar mismatch: {len(grammar_labels)} labels vs "
+                            f"{len(bad_words)} words\n{bad_sentence}"
+                        )
+
+                    bad_item = {
+                        "s": bad_sentence,
+                        "c": comma_labels,
+                        "g": grammar_labels,
+                    }
+
+                    df.write(json.dumps(bad_item, ensure_ascii=False) + "\n")
+
+                good_item = {
                     "s": clean_sentence,
                     "c": comma_labels,
+                    "g": [0] * len(words),
                 }
 
-                df.write(json.dumps(item, ensure_ascii=False) + "\n")
+                df.write(json.dumps(good_item, ensure_ascii=False) + "\n")

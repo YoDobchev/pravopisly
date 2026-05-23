@@ -13,8 +13,9 @@ if __name__ == "__main__":
     if os.path.exists(DATASET_PATH):
         os.remove(DATASET_PATH)
     WIKIPATH = os.getenv("WIKIPATH")
-    assert WIKIPATH != None
-    # append_wikipedia_sentences(WIKIPATH)
+    LEMMAPATH = os.getenv("LEMMAPATH")
+    assert WIKIPATH != None and LEMMAPATH != None
+    append_wikipedia_sentences(WIKIPATH, LEMMAPATH)
 
     SPELLINGPATH = os.getenv("SPELLINGPATH")
     assert SPELLINGPATH != None
