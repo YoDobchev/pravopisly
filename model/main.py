@@ -30,27 +30,11 @@ if __name__ == "__main__":
     tokenizer = AutoTokenizer.from_pretrained("rmihaylov/bert-base-bg")
     print("Tokenizer loaded", flush=True)
 
-    jsonl_path = f"{data_folder}/dataset.jsonl"
-    max_length = 32
-
-    cache_path = f"{data_folder}/dataset_cache_maxlen{max_length}.pt"
-
-    if os.path.exists(cache_path):
-        print(f"Loading dataset from cache: {cache_path}", flush=True)
-        dataset = torch.load(
-            cache_path, map_location="cpu", weights_only=False)
-    else:
-        print("Building dataset from JSONL...", flush=True)
-
-        dataset = PravopislyDataset(
-            jsonl_path=jsonl_path,
-            tokenizer=tokenizer,
-            max_length=max_length,
-        )
-
-        print(f"Saving dataset cache: {cache_path}", flush=True)
-        torch.save(dataset, cache_path)
-
+    dataset = PravopislyDataset(
+        jsonl_path=f"{data_folder}/dataset.jsonl",
+        tokenizer=tokenizer,
+        max_length=32,
+    )
     print(f"Dataset ready: {len(dataset)} samples", flush=True)
 
     print("Splitting dataset...", flush=True)

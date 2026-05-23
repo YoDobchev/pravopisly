@@ -1,14 +1,40 @@
 import json
+import os
 import torch
 from torch.utils.data import Dataset
 
 
 class PravopislyDataset(Dataset):
-    def __init__(self, jsonl_path, tokenizer, max_length=64):
+    def __init__(
+        self,
+        jsonl_path,
+        tokenizer,
+        max_length=64,
+        cache_path=None,
+        rebuild_cache=False,
+    ):
+        if cache_path is None:
+            cache_path = f"{jsonl_path}.maxlen{max_length}.cache.pt"
+
+        if os.path.exists(cache_path) and not rebuild_cache:
+            print(f"Loading dataset cache: {cache_path}", flush=True)
+            self.examples = torch.load(
+                cache_path,
+                map_location="cpu",
+                weights_only=False,
+            )
+            print(
+                f"Loaded {len(self.examples)} examples from cache", flush=True)
+            return
+
+        print(f"Building dataset from JSONL: {jsonl_path}", flush=True)
         self.examples = []
 
         with open(jsonl_path, "r", encoding="utf-8") as f:
-            for line in f:
+            for line_num, line in enumerate(f, start=1):
+                if line_num % 10000 == 0:
+                    print(f"Processed {line_num} lines...", flush=True)
+
                 row = json.loads(line)
 
                 text = row["s"]
@@ -71,6 +97,13 @@ class PravopislyDataset(Dataset):
                     "text": text,
                     "words": words,
                 })
+
+        print(f"Saving dataset cache: {cache_path}", flush=True)
+        tmp_cache_path = f"{cache_path}.tmp"
+        torch.save(self.examples, tmp_cache_path)
+        os.replace(tmp_cache_path, cache_path)
+
+        print(f"Saved {len(self.examples)} examples to cache", flush=True)
 
     def align_labels(self, word_ids, word_labels):
         aligned = []
