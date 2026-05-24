@@ -248,6 +248,10 @@ def test_step(model, loader, device):
     total_grammar_loss = 0
     steps = 0
 
+    comma_stats = new_binary_stats()
+    spelling_stats = new_binary_stats()
+    grammar_stats = new_binary_stats()
+
     for batch in loader:
         input_ids = batch["input_ids"].to(device)
         attention_mask = batch["attention_mask"].to(device)
@@ -268,14 +272,39 @@ def test_step(model, loader, device):
         total_comma_loss += outputs["comma_loss"].item()
         total_spelling_loss += outputs["spelling_loss"].item()
         total_grammar_loss += outputs["grammar_loss"].item()
+
+        update_binary_stats(
+            comma_stats,
+            outputs["comma_logits"],
+            comma_labels,
+        )
+
+        update_binary_stats(
+            spelling_stats,
+            outputs["spelling_logits"],
+            spelling_labels,
+        )
+
+        update_binary_stats(
+            grammar_stats,
+            outputs["grammar_logits"],
+            grammar_labels,
+        )
+
         steps += 1
 
-    return {
+    metrics = {
         "loss": total_loss / steps,
         "comma_loss": total_comma_loss / steps,
         "spelling_loss": total_spelling_loss / steps,
         "grammar_loss": total_grammar_loss / steps,
     }
+
+    metrics.update(finish_binary_stats(comma_stats, "comma"))
+    metrics.update(finish_binary_stats(spelling_stats, "spelling"))
+    metrics.update(finish_binary_stats(grammar_stats, "grammar"))
+
+    return metrics
 
 
 def train(model: PravopislyBERTModel, train_loader, test_loader, device, epochs=3, what_to_train="all"):
@@ -350,6 +379,57 @@ def train(model: PravopislyBERTModel, train_loader, test_loader, device, epochs=
             f"train_grammar_loss={train_metrics['grammar_loss']:.4f} | "
             f"test_loss={test_metrics['loss']:.4f} | "
             f"test_comma_loss={test_metrics['comma_loss']:.4f} | "
-            f"test_spelling_loss={test_metrics['spelling_loss']:.4f} | "
-            f"test_grammar_loss={test_metrics['grammar_loss']:.4f}"
+            f"test_comma_acc={test_metrics['comma_accuracy']:.4f} | "
+            f"test_comma_p={test_metrics['comma_precision']:.4f} | "
+            f"test_comma_r={test_metrics['comma_recall']:.4f} | "
+            f"test_comma_f1={test_metrics['comma_f1']:.4f} | "
+            f"test_spelling_f1={test_metrics['spelling_f1']:.4f} | "
+            f"test_grammar_f1={test_metrics['grammar_f1']:.4f}"
         )
+
+
+def new_binary_stats():
+    return {
+        "correct": 0,
+        "total": 0,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+    }
+
+
+def update_binary_stats(stats, logits, labels):
+    mask = labels != -100
+
+    if not mask.any():
+        return
+
+    preds = logits.argmax(dim=-1)
+
+    preds = preds[mask]
+    labels = labels[mask]
+
+    stats["correct"] += (preds == labels).sum().item()
+    stats["total"] += labels.numel()
+
+    stats["tp"] += ((preds == 1) & (labels == 1)).sum().item()
+    stats["fp"] += ((preds == 1) & (labels == 0)).sum().item()
+    stats["fn"] += ((preds == 0) & (labels == 1)).sum().item()
+
+
+def finish_binary_stats(stats, prefix):
+    accuracy = stats["correct"] / max(stats["total"], 1)
+
+    precision = stats["tp"] / max(stats["tp"] + stats["fp"], 1)
+    recall = stats["tp"] / max(stats["tp"] + stats["fn"], 1)
+
+    f1 = (
+        2 * precision * recall / max(precision + recall, 1e-8)
+    )
+
+    return {
+        f"{prefix}_accuracy": accuracy,
+        f"{prefix}_precision": precision,
+        f"{prefix}_recall": recall,
+        f"{prefix}_f1": f1,
+    }
