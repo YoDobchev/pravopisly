@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 import os
 
-from wikipedia import append_wikipedia_sentences
+from text import append_text_data
 from spelling import append_spelling_data
 
 
@@ -12,10 +12,10 @@ if __name__ == "__main__":
 
     if os.path.exists(DATASET_PATH):
         os.remove(DATASET_PATH)
-    WIKIPATH = os.getenv("WIKIPATH")
+    TEXTSPATH = os.getenv("TEXTSPATH")
     LEMMAPATH = os.getenv("LEMMAPATH")
-    assert WIKIPATH != None and LEMMAPATH != None
-    append_wikipedia_sentences(WIKIPATH, LEMMAPATH)
+    assert TEXTSPATH != None and LEMMAPATH != None
+    append_text_data(TEXTSPATH, LEMMAPATH)
 
     SPELLINGPATH = os.getenv("SPELLINGPATH")
     assert SPELLINGPATH != None

@@ -234,7 +234,7 @@ def make_grammar_mistake(sentence: str, replacements):
     return " ".join(new_words), grammar_labels
 
 
-def append_wikipedia_sentences(path: str, lemmasPath):
+def append_text_data(path: str, lemmasPath):
     input_folder = Path(path)
     files = [file for file in input_folder.rglob("*") if file.is_file()]
 
