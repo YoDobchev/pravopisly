@@ -1,4 +1,6 @@
+grpcio==1.80.0
 pandas==3.0.3
+protobuf==7.35.0
 python-dotenv==1.2.2
 torch==2.10.0
 tqdm==4.67.3

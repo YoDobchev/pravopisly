@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package Pravopisly;
+
+option go_package = "github.com/YoDobchev/pravopisly/be/pb";
+
+service PravopislyComms {
+    rpc SendText (SendToModel) returns (ModelReply) {}
+}
+
+message SendToModel {
+    string text = 1;
+}
+
+message ModelReply {
+    repeated float comma_probs = 1;
+    repeated float grammar_probs = 2; 
+}
