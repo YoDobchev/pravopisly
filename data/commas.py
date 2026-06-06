@@ -38,20 +38,3 @@ def sentence_to_word_labels(sentence: str):
     clean_sentence = " ".join(words)
 
     return clean_sentence, labels
-
-
-def label_commas():
-    dataset_path = "dataset.jsonl"
-    temp_path = dataset_path + ".tmp"
-
-    with open(dataset_path, "r", encoding="utf-8") as infile, \
-            open(temp_path, "w", encoding="utf-8") as outfile:
-
-        for line in infile:
-            obj = json.loads(line)
-            clean_sentence, labels = sentence_to_word_labels(obj["s"])
-            obj["c"] = labels
-            obj["s"] = clean_sentence
-            outfile.write(json.dumps(obj, ensure_ascii=False) + "\n")
-
-    os.replace(temp_path, dataset_path)

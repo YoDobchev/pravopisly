@@ -215,7 +215,7 @@ def make_grammar_mistake(sentence: str, replacements):
 
     mistake_count = 1
 
-    if len(possible) >= 2 and random.random() < 0.25:
+    if len(possible) >= 2 and random.random() < 0.5:
         mistake_count = 2
 
     selected = random.sample(possible, min(mistake_count, len(possible)))
@@ -260,22 +260,22 @@ def append_text_data(path: str, lemmasPath):
                         f"{len(words)} words\n{clean_sentence}"
                     )
 
-                bad_sentence, grammar_labels = make_grammar_mistake(
+                bad_sentence_grammar, grammar_labels = make_grammar_mistake(
                     clean_sentence,
                     replacements,
                 )
 
                 if sum(grammar_labels) > 0:
-                    bad_words = bad_sentence.split()
+                    bad_words = bad_sentence_grammar.split()
 
                     if len(bad_words) != len(words):
                         raise ValueError(
                             f"Grammar mismatch: {len(grammar_labels)} labels vs "
-                            f"{len(bad_words)} words\n{bad_sentence}"
+                            f"{len(bad_words)} words\n{bad_sentence_grammar}"
                         )
 
                     bad_item = {
-                        "s": bad_sentence,
+                        "s": bad_sentence_grammar,
                         "c": comma_labels,
                         "g": grammar_labels,
                     }
@@ -286,6 +286,7 @@ def append_text_data(path: str, lemmasPath):
                     "s": clean_sentence,
                     "c": comma_labels,
                     "g": [0] * len(words),
+                    "sp": [0] * len(words)
                 }
 
                 df.write(json.dumps(good_item, ensure_ascii=False) + "\n")
