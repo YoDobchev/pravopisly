@@ -3,7 +3,7 @@ import torch
 import torch.nn.functional as F
 import grpc
 from concurrent import futures
-from train import PravopislyBERTModel
+from model import PravopislyBERTModel
 
 # autopep8: off
 import sys
