@@ -26,7 +26,8 @@ message TextSuggestion {
 }
 
 enum SuggestionType {
-	COMMA = 0;
-	GRAMMAR = 1;
-	SPELLING = 2;
+	UNKNOWN = 0;
+	COMMA = 1;
+	GRAMMAR = 2;
+	SPELLING = 3;
 }

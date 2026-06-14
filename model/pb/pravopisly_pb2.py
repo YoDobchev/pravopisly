@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x10pravopisly.proto\x12\npravopisly\"\x1b\n\x0bSendToModel\x12\x0c\n\x04text\x18\x01 \x01(\t\"=\n\nModelReply\x12/\n\x0bsuggestions\x18\x01 \x03(\x0b\x32\x1a.pravopisly.TextSuggestion\"x\n\x0eTextSuggestion\x12(\n\x04type\x18\x01 \x01(\x0e\x32\x1a.pravopisly.SuggestionType\x12\x13\n\x0bstart_index\x18\x02 \x01(\x05\x12\x11\n\tend_index\x18\x03 \x01(\x05\x12\x14\n\x0creplacements\x18\x04 \x03(\t*6\n\x0eSuggestionType\x12\t\n\x05\x43OMMA\x10\x00\x12\x0b\n\x07GRAMMAR\x10\x01\x12\x0c\n\x08SPELLING\x10\x02\x32P\n\x0fPravopislyComms\x12=\n\x08SendText\x12\x17.pravopisly.SendToModel\x1a\x16.pravopisly.ModelReply\"\x00\x42\'Z%github.com/YoDobchev/pravopisly/be/pbb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x10pravopisly.proto\x12\npravopisly\"\x1b\n\x0bSendToModel\x12\x0c\n\x04text\x18\x01 \x01(\t\"=\n\nModelReply\x12/\n\x0bsuggestions\x18\x01 \x03(\x0b\x32\x1a.pravopisly.TextSuggestion\"x\n\x0eTextSuggestion\x12(\n\x04type\x18\x01 \x01(\x0e\x32\x1a.pravopisly.SuggestionType\x12\x13\n\x0bstart_index\x18\x02 \x01(\x05\x12\x11\n\tend_index\x18\x03 \x01(\x05\x12\x14\n\x0creplacements\x18\x04 \x03(\t*C\n\x0eSuggestionType\x12\x0b\n\x07UNKNOWN\x10\x00\x12\t\n\x05\x43OMMA\x10\x01\x12\x0b\n\x07GRAMMAR\x10\x02\x12\x0c\n\x08SPELLING\x10\x03\x32P\n\x0fPravopislyComms\x12=\n\x08SendText\x12\x17.pravopisly.SendToModel\x1a\x16.pravopisly.ModelReply\"\x00\x42\'Z%github.com/YoDobchev/pravopisly/be/pbb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -33,13 +33,13 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'Z%github.com/YoDobchev/pravopisly/be/pb'
   _globals['_SUGGESTIONTYPE']._serialized_start=246
-  _globals['_SUGGESTIONTYPE']._serialized_end=300
+  _globals['_SUGGESTIONTYPE']._serialized_end=313
   _globals['_SENDTOMODEL']._serialized_start=32
   _globals['_SENDTOMODEL']._serialized_end=59
   _globals['_MODELREPLY']._serialized_start=61
   _globals['_MODELREPLY']._serialized_end=122
   _globals['_TEXTSUGGESTION']._serialized_start=124
   _globals['_TEXTSUGGESTION']._serialized_end=244
-  _globals['_PRAVOPISLYCOMMS']._serialized_start=302
-  _globals['_PRAVOPISLYCOMMS']._serialized_end=382
+  _globals['_PRAVOPISLYCOMMS']._serialized_start=315
+  _globals['_PRAVOPISLYCOMMS']._serialized_end=395
 # @@protoc_insertion_point(module_scope)

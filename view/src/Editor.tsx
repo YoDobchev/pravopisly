@@ -7,9 +7,14 @@ import Underline from "@tiptap/extension-underline";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { useRef } from "react";
 
+import {
+    type Suggestion,
+    SuggestionHighlight,
+    suggestionHighlightKey,
+} from "./SuggestionHighlight";
+
 type modelResp = {
-  commaProbs: number[]
-  grammarProbs: number[]
+    suggestions: Suggestion[];
 } | null;
 
 function Editor() {
@@ -20,10 +25,16 @@ function Editor() {
             const res = await fetch("/api/suggestions", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ "Text": text }),
+                body: JSON.stringify({ Text: text }),
             });
-            const content: modelResp = await res.json()
-            console.log(content)
+            const content: modelResp = await res.json();
+            console.log(content);
+            editor?.view.dispatch(
+                editor.state.tr.setMeta(
+                    suggestionHighlightKey,
+                    content?.suggestions ?? [],
+                ),
+            );
             if (!res.ok) {
                 throw new Error(`err from server, status: ${res.status}`);
             }
@@ -32,9 +43,9 @@ function Editor() {
         }
     };
     const editor = useEditor({
-        extensions: [Document, Paragraph, Text, Underline],
+        extensions: [Document, Paragraph, Text, Underline, SuggestionHighlight],
         content: `
-        <p style="text-decoration: underline">Шампанско и сълзи е голямата хит който слушам.</p>
+        <p>Шампанско и сълзи е голямата хит който слушам.</p>
       `,
         onUpdate({ editor }) {
             if (timeoutRef.current) {
@@ -51,9 +62,9 @@ function Editor() {
         return null;
     }
     return (
-        <>
+        <div className="editor">
             <EditorContent editor={editor} />
-        </>
+        </div>
     );
 }
 

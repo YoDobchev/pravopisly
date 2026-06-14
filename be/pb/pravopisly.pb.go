@@ -24,22 +24,25 @@ const (
 type SuggestionType int32
 
 const (
-	SuggestionType_COMMA    SuggestionType = 0
-	SuggestionType_GRAMMAR  SuggestionType = 1
-	SuggestionType_SPELLING SuggestionType = 2
+	SuggestionType_UNKNOWN  SuggestionType = 0
+	SuggestionType_COMMA    SuggestionType = 1
+	SuggestionType_GRAMMAR  SuggestionType = 2
+	SuggestionType_SPELLING SuggestionType = 3
 )
 
 // Enum value maps for SuggestionType.
 var (
 	SuggestionType_name = map[int32]string{
-		0: "COMMA",
-		1: "GRAMMAR",
-		2: "SPELLING",
+		0: "UNKNOWN",
+		1: "COMMA",
+		2: "GRAMMAR",
+		3: "SPELLING",
 	}
 	SuggestionType_value = map[string]int32{
-		"COMMA":    0,
-		"GRAMMAR":  1,
-		"SPELLING": 2,
+		"UNKNOWN":  0,
+		"COMMA":    1,
+		"GRAMMAR":  2,
+		"SPELLING": 3,
 	}
 )
 
@@ -202,7 +205,7 @@ func (x *TextSuggestion) GetType() SuggestionType {
 	if x != nil {
 		return x.Type
 	}
-	return SuggestionType_COMMA
+	return SuggestionType_UNKNOWN
 }
 
 func (x *TextSuggestion) GetStartIndex() int32 {
@@ -242,11 +245,12 @@ const file_pravopisly_proto_rawDesc = "" +
 	"\vstart_index\x18\x02 \x01(\x05R\n" +
 	"startIndex\x12\x1b\n" +
 	"\tend_index\x18\x03 \x01(\x05R\bendIndex\x12\"\n" +
-	"\freplacements\x18\x04 \x03(\tR\freplacements*6\n" +
-	"\x0eSuggestionType\x12\t\n" +
-	"\x05COMMA\x10\x00\x12\v\n" +
-	"\aGRAMMAR\x10\x01\x12\f\n" +
-	"\bSPELLING\x10\x022P\n" +
+	"\freplacements\x18\x04 \x03(\tR\freplacements*C\n" +
+	"\x0eSuggestionType\x12\v\n" +
+	"\aUNKNOWN\x10\x00\x12\t\n" +
+	"\x05COMMA\x10\x01\x12\v\n" +
+	"\aGRAMMAR\x10\x02\x12\f\n" +
+	"\bSPELLING\x10\x032P\n" +
 	"\x0fPravopislyComms\x12=\n" +
 	"\bSendText\x12\x17.pravopisly.SendToModel\x1a\x16.pravopisly.ModelReply\"\x00B'Z%github.com/YoDobchev/pravopisly/be/pbb\x06proto3"
 

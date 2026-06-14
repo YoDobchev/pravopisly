@@ -1,0 +1,28 @@
+.suggestion {
+    position: relative;
+    text-decoration: none;
+}
+
+.suggestion::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: -7px;
+
+    width: 300%;
+    height: 5px;
+    border-radius: 999px;
+}
+
+.suggestion-1::after {
+    background-color: orange;
+}
+
+.suggestion-2::after {
+    background-color: red;
+}
+
+.suggestion-3::after {
+    background-color: blue;
+}
