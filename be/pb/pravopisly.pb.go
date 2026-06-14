@@ -21,6 +21,55 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type SuggestionType int32
+
+const (
+	SuggestionType_COMMA    SuggestionType = 0
+	SuggestionType_GRAMMAR  SuggestionType = 1
+	SuggestionType_SPELLING SuggestionType = 2
+)
+
+// Enum value maps for SuggestionType.
+var (
+	SuggestionType_name = map[int32]string{
+		0: "COMMA",
+		1: "GRAMMAR",
+		2: "SPELLING",
+	}
+	SuggestionType_value = map[string]int32{
+		"COMMA":    0,
+		"GRAMMAR":  1,
+		"SPELLING": 2,
+	}
+)
+
+func (x SuggestionType) Enum() *SuggestionType {
+	p := new(SuggestionType)
+	*p = x
+	return p
+}
+
+func (x SuggestionType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (SuggestionType) Descriptor() protoreflect.EnumDescriptor {
+	return file_pravopisly_proto_enumTypes[0].Descriptor()
+}
+
+func (SuggestionType) Type() protoreflect.EnumType {
+	return &file_pravopisly_proto_enumTypes[0]
+}
+
+func (x SuggestionType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use SuggestionType.Descriptor instead.
+func (SuggestionType) EnumDescriptor() ([]byte, []int) {
+	return file_pravopisly_proto_rawDescGZIP(), []int{0}
+}
+
 type SendToModel struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Text          string                 `protobuf:"bytes,1,opt,name=text,proto3" json:"text,omitempty"`
@@ -67,8 +116,7 @@ func (x *SendToModel) GetText() string {
 
 type ModelReply struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	CommaProbs    []float32              `protobuf:"fixed32,1,rep,packed,name=comma_probs,json=commaProbs,proto3" json:"comma_probs,omitempty"`
-	GrammarProbs  []float32              `protobuf:"fixed32,2,rep,packed,name=grammar_probs,json=grammarProbs,proto3" json:"grammar_probs,omitempty"`
+	Suggestions   []*TextSuggestion      `protobuf:"bytes,1,rep,name=suggestions,proto3" json:"suggestions,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -103,16 +151,77 @@ func (*ModelReply) Descriptor() ([]byte, []int) {
 	return file_pravopisly_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *ModelReply) GetCommaProbs() []float32 {
+func (x *ModelReply) GetSuggestions() []*TextSuggestion {
 	if x != nil {
-		return x.CommaProbs
+		return x.Suggestions
 	}
 	return nil
 }
 
-func (x *ModelReply) GetGrammarProbs() []float32 {
+type TextSuggestion struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Type          SuggestionType         `protobuf:"varint,1,opt,name=type,proto3,enum=pravopisly.SuggestionType" json:"type,omitempty"`
+	StartIndex    int32                  `protobuf:"varint,2,opt,name=start_index,json=startIndex,proto3" json:"start_index,omitempty"`
+	EndIndex      int32                  `protobuf:"varint,3,opt,name=end_index,json=endIndex,proto3" json:"end_index,omitempty"`
+	Replacements  []string               `protobuf:"bytes,4,rep,name=replacements,proto3" json:"replacements,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TextSuggestion) Reset() {
+	*x = TextSuggestion{}
+	mi := &file_pravopisly_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TextSuggestion) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TextSuggestion) ProtoMessage() {}
+
+func (x *TextSuggestion) ProtoReflect() protoreflect.Message {
+	mi := &file_pravopisly_proto_msgTypes[2]
 	if x != nil {
-		return x.GrammarProbs
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TextSuggestion.ProtoReflect.Descriptor instead.
+func (*TextSuggestion) Descriptor() ([]byte, []int) {
+	return file_pravopisly_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *TextSuggestion) GetType() SuggestionType {
+	if x != nil {
+		return x.Type
+	}
+	return SuggestionType_COMMA
+}
+
+func (x *TextSuggestion) GetStartIndex() int32 {
+	if x != nil {
+		return x.StartIndex
+	}
+	return 0
+}
+
+func (x *TextSuggestion) GetEndIndex() int32 {
+	if x != nil {
+		return x.EndIndex
+	}
+	return 0
+}
+
+func (x *TextSuggestion) GetReplacements() []string {
+	if x != nil {
+		return x.Replacements
 	}
 	return nil
 }
@@ -122,16 +231,24 @@ var File_pravopisly_proto protoreflect.FileDescriptor
 const file_pravopisly_proto_rawDesc = "" +
 	"\n" +
 	"\x10pravopisly.proto\x12\n" +
-	"Pravopisly\"!\n" +
+	"pravopisly\"!\n" +
 	"\vSendToModel\x12\x12\n" +
-	"\x04text\x18\x01 \x01(\tR\x04text\"R\n" +
+	"\x04text\x18\x01 \x01(\tR\x04text\"J\n" +
 	"\n" +
-	"ModelReply\x12\x1f\n" +
-	"\vcomma_probs\x18\x01 \x03(\x02R\n" +
-	"commaProbs\x12#\n" +
-	"\rgrammar_probs\x18\x02 \x03(\x02R\fgrammarProbs2P\n" +
+	"ModelReply\x12<\n" +
+	"\vsuggestions\x18\x01 \x03(\v2\x1a.pravopisly.TextSuggestionR\vsuggestions\"\xa2\x01\n" +
+	"\x0eTextSuggestion\x12.\n" +
+	"\x04type\x18\x01 \x01(\x0e2\x1a.pravopisly.SuggestionTypeR\x04type\x12\x1f\n" +
+	"\vstart_index\x18\x02 \x01(\x05R\n" +
+	"startIndex\x12\x1b\n" +
+	"\tend_index\x18\x03 \x01(\x05R\bendIndex\x12\"\n" +
+	"\freplacements\x18\x04 \x03(\tR\freplacements*6\n" +
+	"\x0eSuggestionType\x12\t\n" +
+	"\x05COMMA\x10\x00\x12\v\n" +
+	"\aGRAMMAR\x10\x01\x12\f\n" +
+	"\bSPELLING\x10\x022P\n" +
 	"\x0fPravopislyComms\x12=\n" +
-	"\bSendText\x12\x17.Pravopisly.SendToModel\x1a\x16.Pravopisly.ModelReply\"\x00B'Z%github.com/YoDobchev/pravopisly/be/pbb\x06proto3"
+	"\bSendText\x12\x17.pravopisly.SendToModel\x1a\x16.pravopisly.ModelReply\"\x00B'Z%github.com/YoDobchev/pravopisly/be/pbb\x06proto3"
 
 var (
 	file_pravopisly_proto_rawDescOnce sync.Once
@@ -145,19 +262,24 @@ func file_pravopisly_proto_rawDescGZIP() []byte {
 	return file_pravopisly_proto_rawDescData
 }
 
-var file_pravopisly_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_pravopisly_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_pravopisly_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_pravopisly_proto_goTypes = []any{
-	(*SendToModel)(nil), // 0: Pravopisly.SendToModel
-	(*ModelReply)(nil),  // 1: Pravopisly.ModelReply
+	(SuggestionType)(0),    // 0: pravopisly.SuggestionType
+	(*SendToModel)(nil),    // 1: pravopisly.SendToModel
+	(*ModelReply)(nil),     // 2: pravopisly.ModelReply
+	(*TextSuggestion)(nil), // 3: pravopisly.TextSuggestion
 }
 var file_pravopisly_proto_depIdxs = []int32{
-	0, // 0: Pravopisly.PravopislyComms.SendText:input_type -> Pravopisly.SendToModel
-	1, // 1: Pravopisly.PravopislyComms.SendText:output_type -> Pravopisly.ModelReply
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	3, // 0: pravopisly.ModelReply.suggestions:type_name -> pravopisly.TextSuggestion
+	0, // 1: pravopisly.TextSuggestion.type:type_name -> pravopisly.SuggestionType
+	1, // 2: pravopisly.PravopislyComms.SendText:input_type -> pravopisly.SendToModel
+	2, // 3: pravopisly.PravopislyComms.SendText:output_type -> pravopisly.ModelReply
+	3, // [3:4] is the sub-list for method output_type
+	2, // [2:3] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_pravopisly_proto_init() }
@@ -170,13 +292,14 @@ func file_pravopisly_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pravopisly_proto_rawDesc), len(file_pravopisly_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   2,
+			NumEnums:      1,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_pravopisly_proto_goTypes,
 		DependencyIndexes: file_pravopisly_proto_depIdxs,
+		EnumInfos:         file_pravopisly_proto_enumTypes,
 		MessageInfos:      file_pravopisly_proto_msgTypes,
 	}.Build()
 	File_pravopisly_proto = out.File

@@ -19,7 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	PravopislyComms_SendText_FullMethodName = "/Pravopisly.PravopislyComms/SendText"
+	PravopislyComms_SendText_FullMethodName = "/pravopisly.PravopislyComms/SendText"
 )
 
 // PravopislyCommsClient is the client API for PravopislyComms service.
@@ -108,7 +108,7 @@ func _PravopislyComms_SendText_Handler(srv interface{}, ctx context.Context, dec
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var PravopislyComms_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "Pravopisly.PravopislyComms",
+	ServiceName: "pravopisly.PravopislyComms",
 	HandlerType: (*PravopislyCommsServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

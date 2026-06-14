@@ -5,7 +5,7 @@ import warnings
 
 import pravopisly_pb2 as pravopisly__pb2
 
-GRPC_GENERATED_VERSION = '1.80.0'
+GRPC_GENERATED_VERSION = '1.81.1'
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 
@@ -25,7 +25,7 @@ if _version_not_supported:
     )
 
 
-class PravopislyCommsStub(object):
+class PravopislyCommsStub:
     """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
@@ -35,13 +35,13 @@ class PravopislyCommsStub(object):
             channel: A grpc.Channel.
         """
         self.SendText = channel.unary_unary(
-                '/Pravopisly.PravopislyComms/SendText',
+                '/pravopisly.PravopislyComms/SendText',
                 request_serializer=pravopisly__pb2.SendToModel.SerializeToString,
                 response_deserializer=pravopisly__pb2.ModelReply.FromString,
                 _registered_method=True)
 
 
-class PravopislyCommsServicer(object):
+class PravopislyCommsServicer:
     """Missing associated documentation comment in .proto file."""
 
     def SendText(self, request, context):
@@ -60,13 +60,13 @@ def add_PravopislyCommsServicer_to_server(servicer, server):
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'Pravopisly.PravopislyComms', rpc_method_handlers)
+            'pravopisly.PravopislyComms', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('Pravopisly.PravopislyComms', rpc_method_handlers)
+    server.add_registered_method_handlers('pravopisly.PravopislyComms', rpc_method_handlers)
 
 
  # This class is part of an EXPERIMENTAL API.
-class PravopislyComms(object):
+class PravopislyComms:
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
@@ -83,7 +83,7 @@ class PravopislyComms(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/Pravopisly.PravopislyComms/SendText',
+            '/pravopisly.PravopislyComms/SendText',
             pravopisly__pb2.SendToModel.SerializeToString,
             pravopisly__pb2.ModelReply.FromString,
             options,
