@@ -16,15 +16,18 @@ def append_comma_suggestions(
             break
 
         prob = float(comma_probs[i])
+        word = match.group()
         end = match.end()
 
-        comma_index = end if end < len(
-            original_text) and original_text[end] == "," else -1
+        comma_index = -1
 
-        if comma_index == -1:
+        if word.endswith(","):
+            comma_index = end - 1
+        else:
             j = end
             while j < len(original_text) and original_text[j].isspace():
                 j += 1
+
             if j < len(original_text) and original_text[j] == ",":
                 comma_index = j
 
@@ -40,6 +43,6 @@ def append_comma_suggestions(
             suggestions.append(pravopisly_pb2.TextSuggestion(
                 type=pravopisly_pb2.COMMA,
                 start_index=comma_index,
-                end_index=comma_index+1,
+                end_index=comma_index + 1,
                 replacements=[""],
             ))
