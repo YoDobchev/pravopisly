@@ -5,16 +5,17 @@ import grpc
 from concurrent import futures
 from model import PravopislyBERTModel
 from pipelines.commas import append_comma_suggestions
-import pb.pravopisly_pb2 as pravopisly_pb2
-import pb.pravopisly_pb2_grpc as pravopisly_pb2_grpc
 
 # autopep8: off
 import sys
 from pathlib import Path
 
+sys.path.append(str(Path(__file__).parent / "pb"))
 sys.path.append(str(Path(__file__).parent.parent / "data"))
 
 from commas import sentence_to_word_labels
+import pravopisly_pb2
+import pravopisly_pb2_grpc
 # autopep8: on
 
 
