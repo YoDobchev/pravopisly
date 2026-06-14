@@ -4,16 +4,16 @@ import torch.nn.functional as F
 import grpc
 from concurrent import futures
 from model import PravopislyBERTModel
+from pipelines.commas import append_comma_suggestions
+import pb.pravopisly_pb2 as pravopisly_pb2
+import pb.pravopisly_pb2_grpc as pravopisly_pb2_grpc
 
 # autopep8: off
 import sys
 from pathlib import Path
 
-sys.path.append(str(Path(__file__).parent / "pb"))
 sys.path.append(str(Path(__file__).parent.parent / "data"))
 
-import pravopisly_pb2
-import pravopisly_pb2_grpc
 from commas import sentence_to_word_labels
 # autopep8: on
 
@@ -133,11 +133,14 @@ class PravopislyServer(pravopisly_pb2_grpc.PravopislyCommsServicer):
 
         print("rec:", text, flush=True)
 
-        prediction = self.model.predict(text)
+        predictions = self.model.predict(text)
+
+        suggestions = []
+
+        append_comma_suggestions(suggestions, text, predictions["comma_probs"])
 
         return pravopisly_pb2.ModelReply(
-            comma_probs=prediction["comma_probs"],
-            grammar_probs=prediction["grammar_probs"],
+            suggestions=suggestions
         )
 
 

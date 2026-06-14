@@ -52,9 +52,8 @@ func suggestionsHandler(w http.ResponseWriter, r *http.Request) {
 
 	reply, err := sendTextToModel(res.Text)
 
-	json.NewEncoder(w).Encode(map[string][]float32{
-		"commaProbs":   reply.GetCommaProbs(),
-		"grammarProbs": reply.GetGrammarProbs(),
+	json.NewEncoder(w).Encode(map[string][]*pb.TextSuggestion{
+		"suggestions": reply.GetSuggestions(),
 	})
 }
 
