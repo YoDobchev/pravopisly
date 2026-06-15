@@ -1,7 +1,3 @@
-import json
-import os
-
-
 def sentence_to_word_labels(sentence: str):
     words = []
     labels = []

@@ -8,7 +8,7 @@ from lemmas import build_replacements
 from mistakes import make_grammar_mistake, make_spelling_mistake, load_spelling_words
 
 
-def append_text_data(path: str, lemmasPath, spellingWordsPath):
+def append_corpus_data(path: str, lemmasPath, spellingWordsPath):
     input_folder = Path(path)
     files = [file for file in input_folder.rglob("*") if file.is_file()]
 

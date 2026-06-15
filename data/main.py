@@ -2,8 +2,8 @@ from dotenv import load_dotenv
 import os
 
 from speeches2text import speeches2text
-from text import append_text_data
-from spelling import append_spelling_data
+from corpus import append_corpus_data
+from spelling_dataset import append_spelling_data
 
 
 load_dotenv()
@@ -13,13 +13,13 @@ if __name__ == "__main__":
 
     if os.path.exists(DATASET_PATH):
         os.remove(DATASET_PATH)
-    TEXTSPATH = os.getenv("TEXTSPATH")
+    CORPUSPATH = os.getenv("CORPUSPATH")
     SPEECHESPATH = os.getenv("SPEECHESPATH")
     LEMMAPATH = os.getenv("LEMMAPATH")
     FREQLISTPATH = os.getenv("FREQLISTPATH")
-    assert TEXTSPATH != None and LEMMAPATH != None and SPEECHESPATH != None and FREQLISTPATH != None
-    speeches2text(SPEECHESPATH, TEXTSPATH)
-    append_text_data(TEXTSPATH, LEMMAPATH, FREQLISTPATH)
+    assert CORPUSPATH != None and LEMMAPATH != None and SPEECHESPATH != None and FREQLISTPATH != None
+    speeches2text(SPEECHESPATH, CORPUSPATH)
+    append_corpus_data(CORPUSPATH, LEMMAPATH, FREQLISTPATH)
 
     SPELLINGPATH = os.getenv("SPELLINGPATH")
     assert SPELLINGPATH != None

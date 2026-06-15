@@ -2,8 +2,8 @@ import pandas as pd
 from pathlib import Path
 
 
-def speeches2text(speechesPath: str, textsFolderPath):
-    output_path = Path(textsFolderPath) / "speeches"
+def speeches2text(speechesPath: str, corpusFolderPath):
+    output_path = Path(corpusFolderPath) / "speeches"
 
     if output_path.exists():
         return
