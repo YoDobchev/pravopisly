@@ -5,18 +5,21 @@ import pandas as pd
 from commas import sentence_to_word_labels
 from filters import clean_and_extract_sentences
 from lemmas import build_replacements
-from mistakes import make_grammar_mistake, make_spelling_mistake
+from mistakes import make_grammar_mistake, make_spelling_mistake, load_spelling_words
 
 
-def append_text_data(path: str, lemmasPath):
+def append_text_data(path: str, lemmasPath, spellingWordsPath):
     input_folder = Path(path)
     files = [file for file in input_folder.rglob("*") if file.is_file()]
 
     lemmas_file = pd.read_csv(lemmasPath, sep="\t")
     replacements = build_replacements(lemmas_file)
 
+    spelling_words = load_spelling_words(spellingWordsPath)
+
     print(lemmas_file.head())
     print(f"Loaded {len(replacements)} replaceable words")
+    print(f"Loaded {len(spelling_words)} spelling words")
 
     with open("dataset.jsonl", "w", encoding="utf-8") as df, open("corpus.txt", "w", encoding="utf-8") as fr:
         for file in files:
@@ -61,7 +64,8 @@ def append_text_data(path: str, lemmasPath):
                     df.write(json.dumps(bad_item, ensure_ascii=False) + "\n")
 
                 bad_sentence_spelling, spelling_labels = make_spelling_mistake(
-                    clean_sentence
+                    clean_sentence,
+                    spelling_words
                 )
 
                 if sum(spelling_labels) > 0:

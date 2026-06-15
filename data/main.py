@@ -16,9 +16,10 @@ if __name__ == "__main__":
     TEXTSPATH = os.getenv("TEXTSPATH")
     SPEECHESPATH = os.getenv("SPEECHESPATH")
     LEMMAPATH = os.getenv("LEMMAPATH")
-    assert TEXTSPATH != None and LEMMAPATH != None and SPEECHESPATH != None
+    FREQLISTPATH = os.getenv("FREQLISTPATH")
+    assert TEXTSPATH != None and LEMMAPATH != None and SPEECHESPATH != None and FREQLISTPATH != None
     speeches2text(SPEECHESPATH, TEXTSPATH)
-    append_text_data(TEXTSPATH, LEMMAPATH)
+    append_text_data(TEXTSPATH, LEMMAPATH, FREQLISTPATH)
 
     SPELLINGPATH = os.getenv("SPELLINGPATH")
     assert SPELLINGPATH != None

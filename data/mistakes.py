@@ -1,5 +1,42 @@
 import re
 import random
+import pandas as pd
+
+
+def load_spelling_words(path: str, min_frequency: int = 1):
+    words_file = pd.read_csv(
+        path,
+        header=None,
+        names=["word", "frequency"],
+    )
+
+    words_file = words_file.dropna(subset=["word"])
+
+    words_file["word"] = (
+        words_file["word"]
+        .astype(str)
+        .str.strip()
+        .str.lower()
+    )
+
+    words_file["frequency"] = pd.to_numeric(
+        words_file["frequency"],
+        errors="coerce",
+    )
+
+    words_file = words_file.dropna(subset=["frequency"])
+
+    words_file = words_file[
+        words_file["word"].str.fullmatch(r"[а-я]+")
+    ]
+
+    words_file = words_file[
+        words_file["frequency"] >= min_frequency
+    ]
+
+    spelling_words = set(words_file["word"])
+
+    return spelling_words
 
 
 def split_word(word: str):
@@ -57,7 +94,7 @@ def make_grammar_mistake(sentence: str, replacements):
     return " ".join(new_words), grammar_labels
 
 
-def make_spelling_error_word(word: str):
+def make_spelling_error_word(word: str, spelling_words):
     lower = word.lower()
 
     replacements = {
@@ -77,62 +114,55 @@ def make_spelling_error_word(word: str):
         "к": ["г"],
     }
 
-    operations = []
+    candidates = []
 
     if len(lower) >= 5:
-        operations.append("delete")
-        operations.append("duplicate")
+        for index in range(1, len(lower)):
+            result = lower[:index] + lower[index + 1:]
+            candidates.append(result)
 
-    swap_positions = []
+    if len(lower) >= 5:
+        for index in range(1, len(lower)):
+            result = lower[:index] + lower[index] + lower[index:]
+            candidates.append(result)
 
-    for i in range(len(lower) - 1):
-        if lower[i] != lower[i + 1]:
-            swap_positions.append(i)
+    for index in range(len(lower) - 1):
+        if lower[index] != lower[index + 1]:
+            result = (
+                lower[:index]
+                + lower[index + 1]
+                + lower[index]
+                + lower[index + 2:]
+            )
+            candidates.append(result)
 
-    if swap_positions:
-        operations.append("swap")
-
-    replace_positions = []
-
-    for i, char in enumerate(lower):
+    for index, char in enumerate(lower):
         if char in replacements:
-            replace_positions.append(i)
+            for replacement in replacements[char]:
+                result = lower[:index] + replacement + lower[index + 1:]
+                candidates.append(result)
 
-    if replace_positions:
-        operations.append("replace")
+    candidates = list(dict.fromkeys(candidates))
 
-    if not operations:
+    candidates = [
+        candidate for candidate in candidates
+        if candidate != lower
+    ]
+
+    candidates = [
+        candidate for candidate in candidates
+        if candidate not in spelling_words
+    ]
+
+    if not candidates:
         return word
 
-    operation = random.choice(operations)
-
-    if operation == "delete":
-        index = random.randrange(1, len(lower))
-        result = lower[:index] + lower[index + 1:]
-
-    elif operation == "duplicate":
-        index = random.randrange(1, len(lower))
-        result = lower[:index] + lower[index] + lower[index:]
-
-    elif operation == "swap":
-        index = random.choice(swap_positions)
-        result = (
-            lower[:index]
-            + lower[index + 1]
-            + lower[index]
-            + lower[index + 2:]
-        )
-
-    else:
-        index = random.choice(replace_positions)
-        char = lower[index]
-        replacement = random.choice(replacements[char])
-        result = lower[:index] + replacement + lower[index + 1:]
+    result = random.choice(candidates)
 
     return keep_case(word, result)
 
 
-def make_spelling_mistake(sentence: str):
+def make_spelling_mistake(sentence: str, spelling_words):
     words = sentence.split()
     spelling_labels = [0] * len(words)
 
@@ -141,8 +171,16 @@ def make_spelling_mistake(sentence: str):
     for i, word in enumerate(words):
         prefix, core, suffix = split_word(word)
 
-        if re.fullmatch(r"[А-Яа-я]+", core) and len(core) >= 4:
-            possible.append(i)
+        if not re.fullmatch(r"[А-Яа-я]+", core):
+            continue
+
+        if len(core) < 4:
+            continue
+
+        if core.lower() not in spelling_words:
+            continue
+
+        possible.append(i)
 
     if not possible:
         return sentence, spelling_labels
@@ -158,7 +196,7 @@ def make_spelling_mistake(sentence: str):
     for i in selected:
         prefix, core, suffix = split_word(words[i])
 
-        replacement = make_spelling_error_word(core)
+        replacement = make_spelling_error_word(core, spelling_words)
 
         if replacement != core:
             new_words[i] = prefix + replacement + suffix
