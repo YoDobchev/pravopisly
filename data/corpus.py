@@ -25,15 +25,13 @@ def append_corpus_data(path: str, lemmasPath, spellingWordsPath, wordCorrectionP
     print(f"Loaded {len(replacements)} replaceable words")
     print(f"Loaded {len(spelling_words)} spelling words")
 
-    with open("dataset.jsonl", "w", encoding="utf-8") as df, open("corpus.txt", "w", encoding="utf-8") as fr:
+    with open("dataset.jsonl", "w", encoding="utf-8") as df:
         for file in files:
             text = file.read_text(encoding="utf-8")
 
             for sentence in clean_and_extract_sentences(text):
                 if wordCorrectionPath != None:
                     sentence = correct_words(sentence, word_corrections)
-
-                fr.write(sentence + "\n")
 
                 clean_sentence, comma_labels = sentence_to_word_labels(
                     sentence
