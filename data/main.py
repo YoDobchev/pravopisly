@@ -17,9 +17,10 @@ if __name__ == "__main__":
     SPEECHESPATH = os.getenv("SPEECHESPATH")
     LEMMAPATH = os.getenv("LEMMAPATH")
     FREQLISTPATH = os.getenv("FREQLISTPATH")
+    WORDCORRECTIONCSVPATH = os.getenv("WORDCORRECTIONCSVPATH")
     assert CORPUSPATH != None and LEMMAPATH != None and SPEECHESPATH != None and FREQLISTPATH != None
     speeches2text(SPEECHESPATH, CORPUSPATH)
-    append_corpus_data(CORPUSPATH, LEMMAPATH, FREQLISTPATH)
+    append_corpus_data(CORPUSPATH, LEMMAPATH, FREQLISTPATH, WORDCORRECTIONCSVPATH)
 
     SPELLINGPATH = os.getenv("SPELLINGPATH")
     assert SPELLINGPATH != None

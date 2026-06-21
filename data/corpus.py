@@ -5,10 +5,11 @@ import pandas as pd
 from commas import sentence_to_word_labels
 from filters import clean_and_extract_sentences
 from lemmas import build_replacements
+from word_correction import correct_words, load_word_corrections
 from mistakes import make_grammar_mistake, make_spelling_mistake, load_spelling_words
 
 
-def append_corpus_data(path: str, lemmasPath, spellingWordsPath):
+def append_corpus_data(path: str, lemmasPath, spellingWordsPath, wordCorrectionPath):
     input_folder = Path(path)
     files = [file for file in input_folder.rglob("*") if file.is_file()]
 
@@ -16,6 +17,9 @@ def append_corpus_data(path: str, lemmasPath, spellingWordsPath):
     replacements = build_replacements(lemmas_file)
 
     spelling_words = load_spelling_words(spellingWordsPath)
+
+    if wordCorrectionPath != None:
+        word_corrections = load_word_corrections(wordCorrectionPath)
 
     print(lemmas_file.head())
     print(f"Loaded {len(replacements)} replaceable words")
@@ -26,6 +30,9 @@ def append_corpus_data(path: str, lemmasPath, spellingWordsPath):
             text = file.read_text(encoding="utf-8")
 
             for sentence in clean_and_extract_sentences(text):
+                if wordCorrectionPath != None:
+                    sentence = correct_words(sentence, word_corrections)
+
                 fr.write(sentence + "\n")
 
                 clean_sentence, comma_labels = sentence_to_word_labels(
