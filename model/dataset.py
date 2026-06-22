@@ -7,7 +7,7 @@ class PravopislyDataset(Dataset):
     def __init__(self, jsonl_path):
         self.rows = []
 
-        with open(jsonl_path, "rb", encoding="utf-8") as f:
+        with open(jsonl_path, "rb") as f:
             for line_num, line in enumerate(f, start=1):
                 row = orjson.loads(line)
 
