@@ -58,7 +58,7 @@ if __name__ == "__main__":
 
     train_loader = DataLoader(
         train_dataset,
-        batch_size=64,
+        batch_size=512,
         shuffle=True,
         collate_fn=collator,
         num_workers=4 if use_cuda else 0,
@@ -68,7 +68,7 @@ if __name__ == "__main__":
 
     test_loader = DataLoader(
         test_dataset,
-        batch_size=64,
+        batch_size=512,
         shuffle=False,
         collate_fn=collator,
         num_workers=4 if use_cuda else 0,
@@ -80,33 +80,6 @@ if __name__ == "__main__":
         encoder_name="rmihaylov/bert-base-bg",
         tokenizer_len=len(tokenizer),
     ).to(device)
-
-    train(
-        model,
-        train_loader,
-        test_loader,
-        device,
-        what_to_train="comma_head",
-        epochs=2,
-    )
-
-    train(
-        model,
-        train_loader,
-        test_loader,
-        device,
-        what_to_train="spelling_head",
-        epochs=2,
-    )
-
-    train(
-        model,
-        train_loader,
-        test_loader,
-        device,
-        what_to_train="grammar_head",
-        epochs=2,
-    )
 
     train(
         model,

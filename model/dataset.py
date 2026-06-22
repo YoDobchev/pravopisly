@@ -57,9 +57,10 @@ class PravopislyCollator:
         encoded = self.tokenizer(
             batch_words,
             is_split_into_words=True,
-            padding="max_length",
+            padding=True,
             truncation=True,
             max_length=self.max_length,
+            pad_to_multiple_of=8,
             return_tensors="pt",
         )
 
