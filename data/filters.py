@@ -9,10 +9,10 @@ def is_good_sentence(sentence: str) -> bool:
 
     words = sentence.split()
 
-    if len(words) < 6:
+    if len(words) < 4:
         return False
 
-    if len(words) > 35:
+    if len(words) > 32:
         return False
 
     start = sentence.lstrip('„"“')

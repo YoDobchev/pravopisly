@@ -1,8 +1,12 @@
 import pandas as pd
-import json
+import orjson
 import difflib
 
 from commas import sentence_to_word_labels
+
+
+def write_item(out_file, item):
+    out_file.write(orjson.dumps(item).decode("utf-8") + "\n")
 
 
 def find_and_label_differences(erroneous: str, correct: str):
@@ -89,9 +93,7 @@ def append_spelling_data(path: str, output_path="dataset.jsonl", mode="a"):
                 "c": erroneous_commas,
             }
 
-            out_file.write(
-                json.dumps(erroneous_item, ensure_ascii=False) + "\n"
-            )
+            write_item(out_file, erroneous_item)
 
             correct_item = {
                 "s": correct_clean,
@@ -99,6 +101,4 @@ def append_spelling_data(path: str, output_path="dataset.jsonl", mode="a"):
                 "c": correct_commas,
             }
 
-            out_file.write(
-                json.dumps(correct_item, ensure_ascii=False) + "\n"
-            )
+            write_item(out_file, correct_item)
