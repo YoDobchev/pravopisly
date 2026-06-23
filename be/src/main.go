@@ -18,10 +18,23 @@ type suggestionReq struct {
 	Text string `json:"Text"`
 }
 
+type suggestionResp struct {
+	Type         int32    `json:"type"`
+	StartIndex   int32    `json:"start_index"`
+	EndIndex     int32    `json:"end_index"`
+	Replacements []string `json:"replacements"`
+}
+
+type suggestionsResp struct {
+	Suggestions []suggestionResp `json:"suggestions"`
+}
+
 type sentencePart struct {
 	Text       string
 	StartIndex int32
 }
+
+var grpcClient pb.PravopislyCommsClient
 
 func isSentenceEnd(r rune) bool {
 	return r == '.' || r == '!' || r == '?' || r == '…'
@@ -79,53 +92,35 @@ func splitIntoSentences(text string) []sentencePart {
 	return parts
 }
 
-func sendTextToModel(client pb.PravopislyCommsClient, text string) (*pb.ModelReply, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func sendTextToModel(text string) (*pb.ModelReply, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	reply, err := client.SendText(ctx, &pb.SendToModel{
+	return grpcClient.SendText(ctx, &pb.SendToModel{
 		Text: text,
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	return reply, nil
 }
 
-func getSuggestionsForText(text string) ([]*pb.TextSuggestion, error) {
-	conn, err := grpc.NewClient(
-		"localhost:50051",
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Close()
-
-	client := pb.NewPravopislyCommsClient(conn)
-
-	allSuggestions := []*pb.TextSuggestion{}
+func getSuggestionsForText(text string) ([]suggestionResp, error) {
+	allSuggestions := []suggestionResp{}
 	sentences := splitIntoSentences(text)
 
 	for _, sentence := range sentences {
-		reply, err := sendTextToModel(client, sentence.Text)
+		reply, err := sendTextToModel(sentence.Text)
 		if err != nil {
 			return nil, err
 		}
 
 		for _, suggestion := range reply.GetSuggestions() {
-			shiftedSuggestion := &pb.TextSuggestion{
-				Type:       suggestion.GetType(),
+			allSuggestions = append(allSuggestions, suggestionResp{
+				Type:       int32(suggestion.GetType()),
 				StartIndex: suggestion.GetStartIndex() + sentence.StartIndex,
 				EndIndex:   suggestion.GetEndIndex() + sentence.StartIndex,
 				Replacements: append(
 					[]string{},
 					suggestion.GetReplacements()...,
 				),
-			}
-
-			allSuggestions = append(allSuggestions, shiftedSuggestion)
+			})
 		}
 	}
 
@@ -150,15 +145,15 @@ func suggestionsHandler(w http.ResponseWriter, r *http.Request) {
 
 	suggestions, err := getSuggestionsForText(req.Text)
 	if err != nil {
-		http.Error(w, "failed to get suggestions", http.StatusInternalServerError)
 		fmt.Println("model error:", err)
+		http.Error(w, "failed to get suggestions", http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 
-	err = json.NewEncoder(w).Encode(map[string][]*pb.TextSuggestion{
-		"suggestions": suggestions,
+	err = json.NewEncoder(w).Encode(suggestionsResp{
+		Suggestions: suggestions,
 	})
 	if err != nil {
 		fmt.Println("json encode error:", err)
@@ -166,13 +161,24 @@ func suggestionsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	conn, err := grpc.NewClient(
+		"localhost:50051",
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		fmt.Println("grpc connection error:", err)
+		return
+	}
+	defer conn.Close()
+
+	grpcClient = pb.NewPravopislyCommsClient(conn)
+
 	http.HandleFunc("/api/suggestions", suggestionsHandler)
 
 	fmt.Println("server running on http://localhost:3000")
 
-	err := http.ListenAndServe(":3000", nil)
+	err = http.ListenAndServe(":3000", nil)
 	if err != nil {
 		fmt.Println("err:", err)
-		return
 	}
 }
