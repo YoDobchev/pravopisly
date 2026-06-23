@@ -1,10 +1,15 @@
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, AutoModelForMaskedLM
 import torch
 import torch.nn.functional as F
 import grpc
 from concurrent import futures
 from model import PravopislyBERTModel
 from pipelines.commas import append_comma_suggestions
+from pipelines.spelling import append_spelling_suggestions
+from pipelines.bert_mlm_reranker import BertMlmReranker
+from symspellpy import SymSpell, Verbosity
+from dotenv import load_dotenv
+import os
 
 # autopep8: off
 import sys
@@ -126,8 +131,37 @@ class PravopislyModel:
 
 
 class PravopislyServer(pravopisly_pb2_grpc.PravopislyCommsServicer):
-    def __init__(self, model):
+    def __init__(self, model, FREQLISTPATH):
         self.model = model
+
+        self.sym_spell = SymSpell(
+            max_dictionary_edit_distance=2,
+            prefix_length=7
+        )
+        self.sym_spell.load_dictionary(
+            FREQLISTPATH,
+            term_index=0,
+            count_index=1,
+            encoding="utf-8"
+        )
+
+        self.mlm_tokenizer = AutoTokenizer.from_pretrained(
+            "rmihaylov/bert-base-bg",
+            use_fast=True,
+        )
+
+        self.mlm_model = AutoModelForMaskedLM.from_pretrained(
+            "rmihaylov/bert-base-bg",
+        )
+
+        self.mlm_model.to(self.model.device)
+        self.mlm_model.eval()
+
+        self.spelling_reranker = BertMlmReranker(
+            tokenizer=self.mlm_tokenizer,
+            model=self.mlm_model,
+            device=self.model.device,
+        )
 
     def SendText(self, request, context):
         text = request.text
@@ -139,6 +173,10 @@ class PravopislyServer(pravopisly_pb2_grpc.PravopislyCommsServicer):
         suggestions = []
 
         append_comma_suggestions(suggestions, text, predictions["comma_probs"])
+        print(predictions["spelling_probs"])
+        print(predictions["grammar_probs"])
+        append_spelling_suggestions(
+            self.sym_spell, self.spelling_reranker, suggestions, text, predictions["spelling_probs"])
 
         return pravopisly_pb2.ModelReply(
             suggestions=suggestions
@@ -146,11 +184,15 @@ class PravopislyServer(pravopisly_pb2_grpc.PravopislyCommsServicer):
 
 
 if __name__ == "__main__":
+    load_dotenv()
+
+    FREQLISTPATH = os.getenv("FREQLISTPATH")
+    assert FREQLISTPATH != None
     model = PravopislyModel()
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 
     pravopisly_pb2_grpc.add_PravopislyCommsServicer_to_server(
-        PravopislyServer(model),
+        PravopislyServer(model, FREQLISTPATH),
         server,
     )
 
