@@ -11,11 +11,16 @@ export type Suggestion = {
     replacements: string[];
 };
 
-export const suggestionHighlightKey = new PluginKey<Suggestion[]>(
+export type SuggestionHighlightMeta = {
+    suggestions: Suggestion[];
+    activeIndex: number | null;
+};
+
+export const suggestionHighlightKey = new PluginKey<DecorationSet>(
     "suggestionHighlight",
 );
 
-function textIndexToDocPos(doc: ProseMirrorNode, index: number) {
+export function textIndexToDocPos(doc: ProseMirrorNode, index: number) {
     let current = 0;
     let result: number | null = null;
 
@@ -39,21 +44,33 @@ function textIndexToDocPos(doc: ProseMirrorNode, index: number) {
     return result ?? doc.content.size;
 }
 
-function buildDecorations(doc: ProseMirrorNode, suggestions: Suggestion[]) {
-    const decorations = suggestions.map((s) => {
+function buildDecorations(
+    doc: ProseMirrorNode,
+    suggestions: Suggestion[],
+    activeIndex: number | null,
+) {
+    const decorations = suggestions.map((s, index) => {
         const from = textIndexToDocPos(doc, s.start_index);
         const to = textIndexToDocPos(doc, s.end_index);
 
+        const className = [
+            "suggestion",
+            `suggestion-${s.type}`,
+            activeIndex === index ? "suggestion-active" : "",
+        ]
+            .filter(Boolean)
+            .join(" ");
+
         if (s.start_index === s.end_index) {
             const el = document.createElement("span");
-            el.className = `suggestion suggestion-${s.type}`;
+            el.className = className;
             el.textContent = s.replacements[0] || "";
 
             return Decoration.widget(from, el);
         }
 
         return Decoration.inline(from, to, {
-            class: `suggestion suggestion-${s.type}`,
+            class: className,
         });
     });
 
@@ -74,12 +91,16 @@ export const SuggestionHighlight = Extension.create({
                     },
 
                     apply(tr, old) {
-                        const suggestions = tr.getMeta(
-                            suggestionHighlightKey,
-                        ) as Suggestion[] | undefined;
+                        const meta = tr.getMeta(suggestionHighlightKey) as
+                            | SuggestionHighlightMeta
+                            | undefined;
 
-                        if (suggestions) {
-                            return buildDecorations(tr.doc, suggestions);
+                        if (meta) {
+                            return buildDecorations(
+                                tr.doc,
+                                meta.suggestions,
+                                meta.activeIndex,
+                            );
                         }
 
                         return old.map(tr.mapping, tr.doc);

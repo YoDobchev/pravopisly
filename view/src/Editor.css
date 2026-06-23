@@ -1,3 +1,17 @@
+.editor-shell {
+    display: grid;
+    gap: 20px;
+    display: flex;
+    align-items: start;
+}
+
+.editor {
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    background: white;
+    flex-grow: 2;
+}
+
 .editor .ProseMirror {
     font-size: 20px;
     min-height: 300px;

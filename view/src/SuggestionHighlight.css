@@ -1,6 +1,7 @@
 .suggestion {
     position: relative;
     text-decoration: none;
+    border-radius: 3px;
 }
 
 .suggestion::after {
@@ -10,9 +11,10 @@
     transform: translateX(-50%);
     bottom: -7px;
 
-    width: 300%;
-    height: 5px;
-    border-radius: 999px;
+    width: 105%;
+    min-width: 15px;
+    height: 3px;
+    border-radius: 4px;
 }
 
 .suggestion-1::after {
@@ -24,5 +26,10 @@
 }
 
 .suggestion-3::after {
-    background-color: blue;
+    background-color: rgb(38, 121, 237);
+}
+
+.suggestion-active {
+    background: rgba(255, 230, 120, 0.7);
+    outline: 2px solid rgba(0, 0, 0, 0.25);
 }

@@ -1,0 +1,77 @@
+.suggestion-panel {
+    position: sticky;
+    top: 10px;
+    max-height: calc(100vh - 32px);
+    overflow: auto;
+
+    padding: 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    flex-grow: 1;
+}
+
+.suggestion-panel h2 {
+    margin: 0 0 16px;
+    font-size: 20px;
+}
+
+.suggestion-group {
+    margin-bottom: 20px;
+}
+
+.suggestion-group h3 {
+    margin: 0 0 8px;
+    font-size: 14px;
+    color: #000000;
+}
+
+.suggestion-card {
+    margin-bottom: 8px;
+    padding: 10px;
+
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    background: white;
+}
+
+.suggestion-card:hover,
+.suggestion-card.active {
+    border-color: #222;
+    background: #f2f2f2;
+}
+
+.suggestion-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 8px;
+    align-items: center;
+}
+
+.suggestion-original {
+    font-weight: 600;
+}
+
+.replacement-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.replacement-button {
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 999px;
+    background: white;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.replacement-button:hover {
+    border-color: #222;
+    background: #eaeaea;
+}
+
+.suggestion-empty {
+    color: #777;
+}
