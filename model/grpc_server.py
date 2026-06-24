@@ -7,6 +7,7 @@ from model import PravopislyBERTModel
 from pipelines.commas import append_comma_suggestions
 from pipelines.spelling import append_spelling_suggestions
 from pipelines.bert_mlm_reranker import BertMlmReranker
+from pipelines.grammar import Mt5GrammarCorrector, append_grammar_suggestions
 from symspellpy import SymSpell, Verbosity
 from dotenv import load_dotenv
 import os
@@ -131,7 +132,7 @@ class PravopislyModel:
 
 
 class PravopislyServer(pravopisly_pb2_grpc.PravopislyCommsServicer):
-    def __init__(self, model, FREQLISTPATH):
+    def __init__(self, model, FREQLISTPATH, GRAMMARMODELPATH):
         self.model = model
 
         self.sym_spell = SymSpell(
@@ -163,6 +164,11 @@ class PravopislyServer(pravopisly_pb2_grpc.PravopislyCommsServicer):
             device=self.model.device,
         )
 
+        self.grammar_corrector = Mt5GrammarCorrector(
+            GRAMMARMODELPATH,
+            self.model.device,
+        )
+
     def SendText(self, request, context):
         text = request.text
 
@@ -177,6 +183,12 @@ class PravopislyServer(pravopisly_pb2_grpc.PravopislyCommsServicer):
         print(predictions["grammar_probs"])
         append_spelling_suggestions(
             self.sym_spell, self.spelling_reranker, suggestions, text, predictions["spelling_probs"])
+        append_grammar_suggestions(
+            self.grammar_corrector,
+            suggestions,
+            text,
+            predictions["grammar_probs"],
+        )
 
         return pravopisly_pb2.ModelReply(
             suggestions=suggestions
@@ -187,12 +199,13 @@ if __name__ == "__main__":
     load_dotenv()
 
     FREQLISTPATH = os.getenv("FREQLISTPATH")
-    assert FREQLISTPATH != None
+    GRAMMARMODELPATH = os.getenv("GRAMMARMODELPATH")
+    assert FREQLISTPATH != None and GRAMMARMODELPATH != None
     model = PravopislyModel()
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 
     pravopisly_pb2_grpc.add_PravopislyCommsServicer_to_server(
-        PravopislyServer(model, FREQLISTPATH),
+        PravopislyServer(model, FREQLISTPATH, GRAMMARMODELPATH),
         server,
     )
 
