@@ -208,13 +208,24 @@ def train(model: PravopislyBERTModel, train_loader, test_loader, device, epochs=
             f"train_spelling_loss={train_metrics['spelling_loss']:.4f} | "
             f"train_grammar_loss={train_metrics['grammar_loss']:.4f} | "
             f"test_loss={test_metrics['loss']:.4f} | "
-            f"test_comma_loss={test_metrics['comma_loss']:.4f} | "
-            f"test_comma_acc={test_metrics['comma_accuracy']:.4f} | "
-            f"test_comma_p={test_metrics['comma_precision']:.4f} | "
-            f"test_comma_r={test_metrics['comma_recall']:.4f} | "
-            f"test_comma_f1={test_metrics['comma_f1']:.4f} | "
-            f"test_spelling_f1={test_metrics['spelling_f1']:.4f} | "
-            f"test_grammar_f1={test_metrics['grammar_f1']:.4f}"
+
+            f"comma_loss={test_metrics['comma_loss']:.4f} | "
+            f"comma_acc={test_metrics['comma_accuracy']:.4f} | "
+            f"comma_p={test_metrics['comma_precision']:.4f} | "
+            f"comma_r={test_metrics['comma_recall']:.4f} | "
+            f"comma_f1={test_metrics['comma_f1']:.4f} | "
+
+            f"spelling_loss={test_metrics['spelling_loss']:.4f} | "
+            f"spelling_acc={test_metrics['spelling_accuracy']:.4f} | "
+            f"spelling_p={test_metrics['spelling_precision']:.4f} | "
+            f"spelling_r={test_metrics['spelling_recall']:.4f} | "
+            f"spelling_f1={test_metrics['spelling_f1']:.4f} | "
+
+            f"grammar_loss={test_metrics['grammar_loss']:.4f} | "
+            f"grammar_acc={test_metrics['grammar_accuracy']:.4f} | "
+            f"grammar_p={test_metrics['grammar_precision']:.4f} | "
+            f"grammar_r={test_metrics['grammar_recall']:.4f} | "
+            f"grammar_f1={test_metrics['grammar_f1']:.4f}"
         )
 
 
