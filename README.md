@@ -41,6 +41,11 @@ FREQLISTPATH=/path/to/frequency-list
 
 ### 3. Detection Model
 
+Install dependancies
+```text
+pip install -r requirements.txt
+```
+
 Download the multi-head Bulgarian BERT model from Hugging Face:
 
 ```text
