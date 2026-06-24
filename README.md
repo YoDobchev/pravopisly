@@ -7,14 +7,9 @@ Pravopisly is a WIP Bulgarian text correction project for detecting and correcti
 ### 1. Data
 
 Download `dataset.jsonl` and place it inside the `data` folder.
-
-Example structure:
-
 ```text
-pravopisly/
-├── data/
-│   └── dataset.jsonl
-````
+https://huggingface.co/datasets/yodob/Bulgarian-Text-Errors/tree/main
+```
 
 ### 2. Environment Configuration
 
