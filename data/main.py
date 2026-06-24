@@ -4,13 +4,14 @@ import os
 from speeches2text import speeches2text
 from corpus import append_corpus_data
 from spelling_dataset import append_spelling_data
+from eval_csv import make_eval_csv
 
 
 load_dotenv()
 
-MAX_COMMA_ROWS = 500_000
-MAX_SPELLING_ROWS = 500_000
-MAX_GRAMMAR_ROWS = 300_000
+MAX_COMMA_ROWS = 750_000
+MAX_SPELLING_ROWS = 750_000
+MAX_GRAMMAR_ROWS = 500_000
 
 if __name__ == "__main__":
     DATASET_PATH = "dataset.jsonl"
@@ -48,4 +49,14 @@ if __name__ == "__main__":
     append_spelling_data(
         SPELLINGPATH,
         output_path=DATASET_PATH,
+    )
+    
+    make_eval_csv(
+        corpus_path=CORPUSPATH,
+        lemmas_path=LEMMAPATH,
+        spelling_words_path=FREQLISTPATH,
+        word_correction_path=WORDCORRECTIONCSVPATH,
+        output_path="./eval_sen.csv",
+        max_rows=10000,
+        seed=42,
     )

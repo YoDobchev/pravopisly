@@ -75,7 +75,7 @@ def make_grammar_mistake(sentence: str, replacements):
 
     mistake_count = 1
 
-    if len(possible) >= 2 and random.random() < 0.5:
+    if len(possible) >= 2 and random.random() < 0.6:
         mistake_count = 2
 
     selected = random.sample(possible, min(mistake_count, len(possible)))
@@ -104,7 +104,7 @@ def make_spelling_error_word(word: str, spelling_words):
         "и": ["е"],
         "о": ["у", "а"],
         "у": ["о"],
-        "я": ["а"],
+        "я": ["а", "e"],
         "ю": ["у"],
         "с": ["з"],
         "з": ["с"],
@@ -187,7 +187,7 @@ def make_spelling_mistake(sentence: str, spelling_words):
 
     mistake_count = 1
 
-    if len(possible) >= 2 and random.random() < 0.5:
+    if len(possible) >= 2 and random.random() < 0.6:
         mistake_count = 2
 
     selected = random.sample(possible, min(mistake_count, len(possible)))
