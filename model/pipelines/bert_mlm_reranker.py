@@ -37,7 +37,7 @@ class BertMlmReranker:
             return_tensors="pt",
             return_offsets_mapping=True,
             truncation=True,
-            max_length=32,
+            max_length=64,
         )
 
         offsets = encoded.pop("offset_mapping")[0].tolist()

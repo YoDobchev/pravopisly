@@ -31,6 +31,11 @@ function Editor() {
 
     const editor = useEditor({
         extensions: [Document, Paragraph, Text, Underline, SuggestionHighlight],
+        editorProps: {
+            attributes: {
+                spellcheck: "false",
+            },
+        },
         content: `
             <p>Шампанско и сълзи е голямата хит който слушам.</p>
         `,

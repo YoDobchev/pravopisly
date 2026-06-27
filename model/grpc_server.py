@@ -8,7 +8,7 @@ from pipelines.commas import append_comma_suggestions
 from pipelines.spelling import append_spelling_suggestions
 from pipelines.bert_mlm_reranker import BertMlmReranker
 from pipelines.grammar import Mt5GrammarCorrector, append_grammar_suggestions
-from symspellpy import SymSpell, Verbosity
+from symspellpy import SymSpell 
 from dotenv import load_dotenv
 import os
 

@@ -9,6 +9,13 @@ import pb.pravopisly_pb2 as pravopisly_pb2
 
 WORD_RE = re.compile(r"\S+")
 
+def normalize_bg(text: str) -> str:
+    text = str(text).strip()
+    text = re.sub(r"\s+([.,!?;:%)\]])", r"\1", text)
+    text = re.sub(r"([(\[«“])\s+", r"\1", text)
+    text = re.sub(r"\s+-\s+", "-", text)
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()
 
 class Mt5GrammarCorrector:
     def __init__(self, model_path: str, device):
@@ -26,31 +33,31 @@ class Mt5GrammarCorrector:
         self.model.to(self.device)
         self.model.eval()
 
+
+
     @torch.inference_mode()
     def correct(self, text: str) -> str:
+        normalized = normalize_bg(text)
         encoded = self.tokenizer(
-            text,
+            "fix grammar: " + normalized,
             return_tensors="pt",
             truncation=True,
-            max_length=128,
+            max_length=160,
         )
-
         input_ids = encoded["input_ids"].to(self.device)
         attention_mask = encoded["attention_mask"].to(self.device)
-
         output_ids = self.model.generate(
             input_ids=input_ids,
             attention_mask=attention_mask,
-            max_new_tokens=128,
-            num_beams=2,
+            max_new_tokens=160,
+            num_beams=4,
         )
-
         corrected = self.tokenizer.decode(
             output_ids[0],
             skip_special_tokens=True,
         )
+        return normalize_bg(corrected)
 
-        return corrected.strip()
 
 
 def has_confident_grammar_error(grammar_probs, min_confidence: float):
