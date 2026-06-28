@@ -1,14 +1,14 @@
 # Pravopisly
 
+![demo](./images/demo.gif)
+
 Pravopisly is a WIP Bulgarian text correction project for detecting and correcting spelling, grammar, and punctuation errors.
 
 ## Setup
 
-### 1. Data
-
-Download `dataset.jsonl` and place it inside the `data` folder.
+### 1. Install dependancies
 ```text
-https://huggingface.co/datasets/yodob/Bulgarian-Text-Errors/tree/main
+pip install -r requirements.txt
 ```
 
 ### 2. Environment Configuration
@@ -16,22 +16,13 @@ https://huggingface.co/datasets/yodob/Bulgarian-Text-Errors/tree/main
 Copy the environment template:
 
 ```bash
+cd model
 cp .env-template .env
 ```
 
 Open `.env` and update the following paths.
 
-Set `DATAFOLDER` to the path of the `data` folder:
-
-```env
-DATAFOLDER=/path/to/pravopisly/data
-```
-
-Download the Bulgarian frequency list from Hugging Face:
-
-```text
-https://huggingface.co/datasets/yodob/Bulgarian-Frequency-list/tree/main
-```
+### 3. Download the [Bulgarian frequency list](https://huggingface.co/datasets/yodob/Bulgarian-Frequency-list):
 
 Then set `FREQLISTPATH` to the downloaded frequency list path:
 
@@ -39,46 +30,35 @@ Then set `FREQLISTPATH` to the downloaded frequency list path:
 FREQLISTPATH=/path/to/frequency-list
 ```
 
-### 3. Detection Model
+### 4. Detection Model
 
-Install dependancies
-```text
-pip install -r requirements.txt
+Download the [multi-head Bulgarian BERT](https://huggingface.co/yodob/Multi-Head-Bulgarian-BERT):
+
+Then set `MHBERTPATH` to the downloaded model:
+
+```env
+MHBERTPATH=/path/to/multi-head-bert
 ```
 
-Download the multi-head Bulgarian BERT model from Hugging Face:
+### 5. Grammar Correction Model
 
-```text
-https://huggingface.co/yodob/Multi-Head-Bulgarian-BERT/tree/main
-```
-
-Place the model files inside:
-
-```text
-model/checkpoints/pravopisly_model
-```
-
-Expected structure:
-
-```text
-pravopisly/
-├── model/
-│   └── checkpoints/
-│       └── pravopisly_model/
-```
-
-### 4. Grammar Correction Model
-
-Download the mT5 Bulgarian grammar correction model:
-
-```text
-https://huggingface.co/yodob/mT5-Bulgarian-grammar-correction/tree/main
-```
+Download the [mT5 Bulgarian grammar correction model](https://huggingface.co/yodob/mT5-Bulgarian-grammar-correction):
 
 Then set `GRAMMARMODELPATH` in `.env` to the downloaded model path:
 
 ```env
 GRAMMARMODELPATH=/path/to/mT5-Bulgarian-grammar-correction
+```
+
+### 6. Data (optional for training)
+
+Download [dataset.jsonl](https://huggingface.co/datasets/yodob/Bulgarian-Text-Errors) and place it inside the `data` folder.
+
+
+Set `DATAFOLDER` to the path of the `data` folder:
+
+```env
+DATAFOLDER=/path/to/pravopisly/data
 ```
 
 ## Running the Project
@@ -88,6 +68,7 @@ GRAMMARMODELPATH=/path/to/mT5-Bulgarian-grammar-correction
 Run:
 
 ```bash
+cd model
 python grpc_server.py
 ```
 
@@ -96,6 +77,7 @@ python grpc_server.py
 Run:
 
 ```bash
+cd be
 go run src/main.go
 ```
 
@@ -104,10 +86,11 @@ go run src/main.go
 Install dependencies:
 
 ```bash
+cd view
 npm install
 ```
 
-Start the development server:
+Start the dev server:
 
 ```bash
 npm run dev

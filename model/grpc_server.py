@@ -26,7 +26,7 @@ import pravopisly_pb2_grpc
 
 
 class PravopislyModel:
-    def __init__(self):
+    def __init__(self, MHBERTPATH):
         self.device = torch.device(
             "cuda" if torch.cuda.is_available()
             else "mps" if torch.backends.mps.is_available()
@@ -36,12 +36,12 @@ class PravopislyModel:
         print(f"using device: {self.device}", flush=True)
 
         self.tokenizer = AutoTokenizer.from_pretrained(
-            "checkpoints/pravopisly_model",
+            MHBERTPATH,
             use_fast=True,
         )
 
         checkpoint = torch.load(
-            "checkpoints/pravopisly_model/model.pt",
+            f"{MHBERTPATH}/model.pt",
             map_location="cpu",
             weights_only=False,
         )
@@ -198,10 +198,11 @@ class PravopislyServer(pravopisly_pb2_grpc.PravopislyCommsServicer):
 if __name__ == "__main__":
     load_dotenv()
 
+    MHBERTPATH = os.getenv("MHBERTPATH")
     FREQLISTPATH = os.getenv("FREQLISTPATH")
     GRAMMARMODELPATH = os.getenv("GRAMMARMODELPATH")
-    assert FREQLISTPATH != None and GRAMMARMODELPATH != None
-    model = PravopislyModel()
+    assert MHBERTPATH != None and FREQLISTPATH != None and GRAMMARMODELPATH != None
+    model = PravopislyModel(MHBERTPATH)
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 
     pravopisly_pb2_grpc.add_PravopislyCommsServicer_to_server(
